@@ -1,0 +1,33 @@
+{
+  "name": "effect-playground",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.24.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "node --watch src/main.ts",
+    "start": "node src/main.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint:arch": "depcruise src --config .dependency-cruiser.cjs",
+    "lint:run": "node scripts/check-run-edges.ts",
+    "check": "pnpm typecheck && pnpm lint:arch && pnpm lint:run && pnpm test"
+  },
+  "dependencies": {
+    "@effect/platform-node": "4.0.6",
+    "effect": "4.0.6"
+  },
+  "devDependencies": {
+    "@effect/language-service": "^0.87.5",
+    "@effect/vitest": "4.0.6",
+    "@types/node": "^26.6.5",
+    "dependency-cruiser": "^18.7.0",
+    "prettier": "^3.9.10",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.5"
+  }
+}
