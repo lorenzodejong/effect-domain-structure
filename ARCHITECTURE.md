@@ -15,7 +15,9 @@ src/
 ├── app/                         Composition root: picks implementations, wires layers, config, server
 │   ├── Api.ts                   Merges every feature's HTTP slice into one HttpApi
 │   ├── AppConfig.ts             Config read from the environment
-│   └── HttpLive.ts              Layer graph: handlers + adapters + Node HTTP server
+│   ├── AppLive.ts               The whole application as one layer (what main.ts launches)
+│   ├── <Feature>Live.ts         A feature's services with chosen implementations provided
+│   └── HttpLive.ts              Layer graph: handlers + Node HTTP server
 ├── shared/                      Shared kernel, same layer split as a feature
 │   ├── domain/                  Value objects used by several features (Email, Money, ...)
 │   ├── application/             Cross-cutting ports (e.g. IdGenerator)
@@ -125,12 +127,14 @@ Why every feature builds its own `HttpApi.make(ApiId)` slice: in v4 the handler 
 The only code that knows the whole system.
 
 - `Api.ts`: `HttpApi.make(ApiId).addHttpApi(FeatureApi)...`.
-- `HttpLive.ts`: builds the layer graph, choosing implementations (`BookRepositorySql` vs `BookRepositoryMemory`) and providing platform layers (`NodeHttpServer`).
+- `<Feature>Live.ts`: provides a feature's application services with concrete implementations (`BookRepositorySql` vs `BookRepositoryMemory`, `NodeCrypto`), leaving `Layer<Service, E, never>`.
+- `HttpLive.ts`: the HTTP server, API handlers and docs, with platform layers (`NodeHttpServer`).
+- `AppLive.ts`: merges everything into the one layer `main.ts` launches.
 - `AppConfig.ts`: `Config` values. Features that need config declare it in their own layer; `app` only supplies the `ConfigProvider` when needed.
 
 ### main.ts
 
-`NodeRuntime.runMain(Layer.launch(HttpLive))`. Nothing else.
+`NodeRuntime.runMain(Layer.launch(AppLive))`. Nothing else.
 
 ## Cross-feature dependencies
 
@@ -148,4 +152,4 @@ If two features need each other, the shared concept probably belongs in `shared/
 - **Service keys**: `"app/<feature>/<Name>"`.
 - **Layers**: production implementations are named by technology (`BookRepositorySql`); in-memory ones `...Memory`; a service with a default implementation exposes `static readonly layer`.
 - **Imports** use explicit `.ts` extensions (Node 24 runs TypeScript directly; only erasable syntax is allowed: no `enum`, no parameter properties, no `namespace`).
-- **Tests** sit next to the code as `*.test.ts` and use `@effect/vitest` (`it.effect`), with `...Memory` layers in place of real infrastructure.
+- **Tests** sit next to the code as `*.test.ts` and use `@effect/vitest` (`it.effect`), with `...Memory` layers in place of real infrastructure. Tests are exempt from the layer-direction and purity rules: each test is its own small composition root.

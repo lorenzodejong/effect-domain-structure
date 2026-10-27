@@ -22,31 +22,33 @@ module.exports = {
     },
 
     // ---- Layer direction: domain <- application <- (api | infrastructure) <- app ----
+    // Tests are exempt: a test is its own small composition root and may swap in
+    // infrastructure (e.g. ...Memory layers) behind the ports it exercises.
     {
       name: "domain-is-innermost",
       comment: "domain may only import other domain code",
       severity: "error",
-      from: { path: layer("domain") },
+      from: { path: layer("domain"), pathNot: tests },
       to: { path: ["^src/(main\\.ts|app/)", layer("(application|infrastructure|api)")] }
     },
     {
       name: "application-knows-no-adapters",
       comment: "application defines ports; it never sees their implementations or HTTP",
       severity: "error",
-      from: { path: layer("application") },
+      from: { path: layer("application"), pathNot: tests },
       to: { path: ["^src/(main\\.ts|app/)", layer("(infrastructure|api)")] }
     },
     {
       name: "api-knows-no-infrastructure",
       comment: "inbound adapters talk to application services, never to outbound adapters",
       severity: "error",
-      from: { path: layer("api") },
+      from: { path: layer("api"), pathNot: tests },
       to: { path: ["^src/(main\\.ts|app/)", layer("infrastructure")] }
     },
     {
       name: "infrastructure-knows-no-api",
       severity: "error",
-      from: { path: layer("infrastructure") },
+      from: { path: layer("infrastructure"), pathNot: tests },
       to: { path: ["^src/(main\\.ts|app/)", layer("api")] }
     },
 
