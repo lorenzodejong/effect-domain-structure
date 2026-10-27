@@ -118,7 +118,9 @@ Implementations of application ports.
 The HTTP edge of the feature, in two files:
 
 - `<Feature>Api.ts`: the contract. An `HttpApiGroup` plus a slice `HttpApi.make(ApiId).add(Group)`. No implementation, so a typed client can import it too.
-- `<Feature>Http.ts`: handlers via `HttpApiBuilder.group(<Feature>Api, "group", ...)`. Handlers call application services and map domain errors to HTTP errors.
+- `<Feature>Http.ts`: handlers via `HttpApiBuilder.group(<Feature>Api, "group", ...)`. Handlers only translate HTTP to use-case calls.
+- Status codes for domain errors are attached in the contract, e.g. `BookNotFound.pipe(HttpApiSchema.status(404))`. The schema's type is unchanged, so handlers fail with domain errors as-is and need no mapping code; the domain stays HTTP-free.
+- An endpoint's `error` list is a contract: a use case that can fail with an undeclared error does not compile. Technical failures must become defects (`Effect.orDie`) before they reach a handler.
 
 Why every feature builds its own `HttpApi.make(ApiId)` slice: in v4 the handler layer for group `"books"` is looked up by group identifier, and its type is keyed by `ApiId`. Sharing `ApiId` lets each feature implement its handlers without importing `src/app/Api.ts`, which would break `only-main-imports-app`.
 

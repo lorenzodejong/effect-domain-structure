@@ -30,7 +30,10 @@ export class Books extends Context.Service<Books>()("app/books/Books", {
     const register = Effect.fn("Books.register")(function* (
       command: RegisterBook,
     ) {
-      const id = BookId.make(yield* crypto.randomUUIDv4());
+      // Failing to generate randomness is a technical failure no caller can
+      // handle, so it becomes a defect instead of a typed error.
+      const uuid = yield* crypto.randomUUIDv4().pipe(Effect.orDie);
+      const id = BookId.make(uuid);
       const book = new Book({ ...command, id });
       yield* repository.insert(book);
       return book;

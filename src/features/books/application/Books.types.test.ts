@@ -3,10 +3,11 @@
 import { describe, expectTypeOf, it } from "@effect/vitest"
 import { type Crypto, Effect, type Layer } from "effect"
 import type { Book } from "../domain/Book.ts"
-import type { BookNotFound } from "../domain/BookErrors.ts"
+import type { BookNotFound, IsbnAlreadyRegistered } from "../domain/BookErrors.ts"
 import { BookId } from "../domain/BookId.ts"
 import type { BookRepository } from "./BookRepository.ts"
 import { Books } from "./Books.ts"
+import type { RegisterBook } from "./RegisterBook.ts"
 
 const id = BookId.make("8d0c6a2e-4d0f-4f5e-9a51-6f1f3f2b9c11")
 
@@ -39,5 +40,15 @@ describe("Books requirements", () => {
       // @ts-expect-error Argument of type 'string' is not assignable to parameter of type 'string & Brand<"BookId">'
       yield* books.get("8d0c6a2e-4d0f-4f5e-9a51-6f1f3f2b9c11")
     })
+  })
+})
+
+describe("Books errors", () => {
+  it("register fails only with domain errors (technical failures are defects)", () => {
+    const register = Effect.gen(function*() {
+      const books = yield* Books
+      return yield* books.register({} as RegisterBook)
+    })
+    expectTypeOf<Effect.Error<typeof register>>().toEqualTypeOf<IsbnAlreadyRegistered>()
   })
 })

@@ -1,7 +1,5 @@
-import { Layer } from "effect"
-import { BooksLive } from "./BooksLive.ts"
 import { HttpLive } from "./HttpLive.ts"
 
-// Books has no HTTP handlers yet, so it is launched next to the server.
-// Once the books api exists, BooksLive moves into HttpLive's handler graph.
-export const AppLive = Layer.mergeAll(HttpLive, BooksLive)
+// The whole application. Today that is the HTTP server; background workers
+// or schedulers would be merged in here.
+export const AppLive = HttpLive
